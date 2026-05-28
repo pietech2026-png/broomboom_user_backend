@@ -20,6 +20,18 @@ startServer();
 app.use(cors());
 app.use(express.json());
 
+// Test Routes
+app.get("/", (req, res) => {
+  res.send("Backend Working");
+});
+
+app.get("/test", (req, res) => {
+  res.json({
+    success: true,
+    message: "API Running"
+  });
+});
+
 // Routes
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/users', require('./routes/userRoutes'));
@@ -28,11 +40,6 @@ app.use('/api/car-categories', require('./routes/carCategoryRoutes'));
 app.use('/api/pricing-rules', require('./routes/pricingRuleRoutes'));
 app.use('/api/global-settings', require('./routes/globalSettingRoutes'));
 app.use('/api/cities', require('./routes/cityRoutes'));
-
-// Root Route
-app.get('/', (req, res) => {
-    res.send('Broom Boom Cabs User Backend API is running...');
-});
 
 const PORT = process.env.PORT || 5004;
 
