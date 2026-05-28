@@ -3,10 +3,18 @@ const express = require('express');
 const cors = require('cors');
 const connectDB = require('./config/db');
 
-// Connect to Database
-connectDB();
-
 const app = express();
+
+const startServer = async () => {
+  try {
+    await connectDB();
+    console.log("Database Connected");
+  } catch (err) {
+    console.error("DB Error:", err);
+  }
+};
+
+startServer();
 
 // Middleware
 app.use(cors());
@@ -30,7 +38,7 @@ const PORT = process.env.PORT || 5004;
 
 if (process.env.NODE_ENV !== "production") {
   app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+    console.log(`Running on ${PORT}`);
   });
 }
 
