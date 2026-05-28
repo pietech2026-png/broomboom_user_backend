@@ -10,9 +10,12 @@ let isConnected = false;
 const startServer = async () => {
   if (isConnected) return;
 
-  await connectDB();
-
-  isConnected = true;
+  try {
+    await connectDB();
+    isConnected = true;
+  } catch (error) {
+    console.error("Database connection failed during lazy initialization:", error.message);
+  }
 };
 
 app.use(async (req, res, next) => {
