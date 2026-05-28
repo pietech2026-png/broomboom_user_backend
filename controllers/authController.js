@@ -1,10 +1,18 @@
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 
-// @desc    User Login (Mock OTP)
+// @desc    User Login (Mock OTP / Email Mock)
 // @route   POST /api/auth/login
 exports.login = async (req, res) => {
-    const { phone } = req.body;
+    const { phone, email } = req.body;
+
+    if (email) {
+        return res.status(200).json({
+            success: true,
+            message: "Login API Working"
+        });
+    }
+
     try {
         let user = await User.findOne({ phone });
         if (!user) {
@@ -32,6 +40,24 @@ exports.login = async (req, res) => {
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
+};
+
+// @desc    User Register (Mock API)
+// @route   POST /api/auth/register
+exports.register = async (req, res) => {
+    res.status(200).json({
+        success: true,
+        message: "Register API Working"
+    });
+};
+
+// @desc    User Logout (Mock API)
+// @route   POST /api/auth/logout
+exports.logout = async (req, res) => {
+    res.status(200).json({
+        success: true,
+        message: "Logout API Working"
+    });
 };
 
 // @desc    Get Current User Profile
