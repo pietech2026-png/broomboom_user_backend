@@ -5,16 +5,21 @@ const connectDB = require('./config/db');
 
 const app = express();
 
+let isConnected = false;
+
 const startServer = async () => {
-  try {
-    await connectDB();
-    console.log("Database Connected");
-  } catch (err) {
-    console.error("DB Error:", err);
-  }
+  if (isConnected) return;
+
+  await connectDB();
+
+  isConnected = true;
 };
 
-startServer();
+app.use(async (req, res, next) => {
+  await startServer();
+
+  next();
+});
 
 // Middleware
 app.use(cors());
