@@ -20,8 +20,10 @@ exports.login = async (req, res) => {
 
         // Clean phone number: remove all spaces to allow robust lookup
         const cleanedPhone = phone.replace(/\s+/g, '');
-        const escapedPhone = cleanedPhone.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-        const spaceRegex = escapedPhone.split('').join('\\s*');
+        const spaceRegex = cleanedPhone.split('').map(char => {
+            if (char === '+') return '\\+';
+            return char;
+        }).join('\\s*');
         const regexPhone = new RegExp('^' + spaceRegex + '$');
 
         // Check if user exists in database
