@@ -151,7 +151,8 @@ const seedData = async () => {
         // Seed Global Settings
         await GlobalSetting.create([
             { key: 'globalMultiplier', value: 1.0 },
-            { key: 'advancePercentage', value: 20 }
+            { key: 'advancePercentage', value: 20 },
+            { key: 'petCharge', value: 1000 }
         ]);
         console.log('Global Settings seeded');
 

@@ -65,7 +65,9 @@ const bookingSchema = new mongoose.Schema({
     ],
     driverName: { type: String },
     driverNumber: { type: String },
-    carNo: { type: String }
+    carNo: { type: String },
+    isPetCab: { type: Boolean, default: false },
+    petType: { type: String, default: null }
 }, {
     timestamps: true
 });

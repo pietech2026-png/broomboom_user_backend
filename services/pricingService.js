@@ -52,6 +52,20 @@ function normalizeCarCategory(cat) {
 }
 
 /**
+ * Calculates advance amount based on advance type (Percentage/Fixed) and value
+ */
+function calculateAdvanceAmount(fare, advanceType, advanceValue, globalAdvance) {
+    const type = advanceType || 'Percentage';
+    const val = (advanceValue !== undefined && advanceValue !== null) ? advanceValue : globalAdvance;
+    if (type === 'Fixed') {
+        return Math.min(fare, val);
+    } else {
+        return Math.round(fare * (val / 100));
+    }
+}
+
+
+/**
  * Calculates ride fare based on configured pricing engines
  */
 async function calculatePrice({
@@ -73,11 +87,14 @@ async function calculatePrice({
     returnDate,
     returnTime,
     packageHours,
-    includedKms
+    includedKms,
+    isPetCab = false
 }) {
-    // 1. Get Global Multiplier
+    // 1. Get Global Multiplier, Advance Percentage, and Pet Charge
     const settings = await GlobalSetting.find();
     const multiplier = settings.find(s => s.key === 'globalMultiplier')?.value || 1.0;
+    const globalAdvance = settings.find(s => s.key === 'advancePercentage')?.value ?? 20;
+    const petCharge = isPetCab ? (settings.find(s => s.key === 'petCharge')?.value ?? 0) : 0;
 
     // Normalize inputs
     const normalizedRideType = normalizeRideType(rideType);
@@ -167,16 +184,13 @@ async function calculatePrice({
         if (routeRule.includeParking) details.parking = 'Included';
         if (routeRule.includeNightAllowance) details.nightAllowance = 'Included';
 
-        // Get advance payment logic
-        let advance = 0;
-        const finalFare = Math.round(baseFare * multiplier);
-
-        if (routeRule.advanceType === 'Percentage') {
-            advance = Math.round(finalFare * (routeRule.advanceValue / 100));
-        } else {
-            advance = routeRule.advanceValue;
+        // Get advance payment logic and pet charge
+        const finalFare = Math.round(baseFare * multiplier) + petCharge;
+        if (isPetCab) {
+            details.petCharge = petCharge;
         }
 
+        const advance = calculateAdvanceAmount(finalFare, routeRule.advanceType, routeRule.advanceValue, globalAdvance);
         const dueFare = Math.max(0, finalFare - advance);
 
         return {
@@ -239,16 +253,13 @@ async function calculatePrice({
                     details.extraCharges = extraCharges;
                 }
 
-                // Apply global multiplier
-                const finalFareMultiplied = Math.round(finalFare * multiplier);
-
-                let advance = 0;
-                if (pkg.advanceType === 'Percentage') {
-                    advance = Math.round(finalFareMultiplied * (pkg.advanceValue / 100));
-                } else {
-                    advance = pkg.advanceValue;
+                // Apply global multiplier and pet charge
+                const finalFareMultiplied = Math.round(finalFare * multiplier) + petCharge;
+                if (isPetCab) {
+                    details.petCharge = petCharge;
                 }
 
+                const advance = calculateAdvanceAmount(finalFareMultiplied, pkg.advanceType, pkg.advanceValue, globalAdvance);
                 const dueFare = Math.max(0, finalFareMultiplied - advance);
 
                 return {
@@ -357,15 +368,13 @@ async function calculatePrice({
                 finalFare = Math.max(resolvedDistance, stateRule.minKms) * stateRule.ratePerKm + (stateRule.driverBata || 0);
             }
 
-            // Apply global multiplier
-            const finalFareMultiplied = Math.round(finalFare * multiplier);
-
-            if (stateRule.advanceType === 'Percentage') {
-                advance = Math.round(finalFareMultiplied * (stateRule.advanceValue / 100));
-            } else {
-                advance = stateRule.advanceValue;
+            // Apply global multiplier and pet charge
+            const finalFareMultiplied = Math.round(finalFare * multiplier) + petCharge;
+            if (isPetCab) {
+                details.petCharge = petCharge;
             }
 
+            advance = calculateAdvanceAmount(finalFareMultiplied, stateRule.advanceType, stateRule.advanceValue, globalAdvance);
             const dueFare = Math.max(0, finalFareMultiplied - advance);
 
             return {

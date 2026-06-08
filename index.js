@@ -47,6 +47,7 @@ app.use('/api/bookings', require('./routes/bookingRoutes'));
 app.use('/api/car-categories', require('./routes/carCategoryRoutes'));
 app.use('/api/pricing-rules', require('./routes/pricingRuleRoutes'));
 app.use('/api/global-settings', require('./routes/globalSettingRoutes'));
+app.use('/api/search-leads', require('./routes/searchLeadRoutes'));
 app.use('/api/cities', require('./routes/cityRoutes'));
 
 const PORT = process.env.PORT || 5004;

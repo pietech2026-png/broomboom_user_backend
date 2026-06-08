@@ -4,7 +4,11 @@ const Booking = require('../models/Booking');
 // @route   GET /api/bookings
 exports.getBookings = async (req, res) => {
     try {
-        const bookings = await Booking.find().sort({ createdAt: -1 });
+        const query = {};
+        if (req.query.isPetCab !== undefined) {
+            query.isPetCab = req.query.isPetCab === 'true';
+        }
+        const bookings = await Booking.find(query).sort({ createdAt: -1 });
         res.status(200).json(bookings);
     } catch (error) {
         res.status(500).json({ message: error.message });

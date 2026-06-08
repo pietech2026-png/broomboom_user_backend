@@ -114,7 +114,19 @@ async function runTests() {
             (res) => res.success === true && res.fare === 2290 && res.details.extraCharges === 290
         );
 
-        // Case 6: Fallback rule missing
+        // Case 6: Fixed Advance Check (Delhi to Agra)
+        await testCase(
+            'Route-Specific Fixed Advance (Delhi to Agra)',
+            {
+                rideType: 'Oneway',
+                sourceCity: 'Delhi',
+                destinationCity: 'Agra',
+                category: 'Sedan'
+            },
+            (res) => res.success === true && res.fare === 3000 && res.advance === 500 && res.dueFare === 2500
+        );
+
+        // Case 7: Fallback rule missing
         await testCase(
             'Unmapped fallback pricing message check',
             {
