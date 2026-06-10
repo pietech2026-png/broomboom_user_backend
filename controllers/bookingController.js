@@ -69,7 +69,8 @@ exports.calculateFare = async (req, res) => {
             returnDate: req.body.returnDate,
             returnTime: req.body.returnTime,
             packageHours: req.body.packageHours,
-            includedKms: req.body.includedKms
+            includedKms: req.body.includedKms,
+            addonId: req.body.addonId
         };
 
         const result = await pricingService.calculatePrice(params);

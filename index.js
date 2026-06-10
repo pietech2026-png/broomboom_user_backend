@@ -49,6 +49,7 @@ app.use('/api/pricing-rules', require('./routes/pricingRuleRoutes'));
 app.use('/api/global-settings', require('./routes/globalSettingRoutes'));
 app.use('/api/search-leads', require('./routes/searchLeadRoutes'));
 app.use('/api/cities', require('./routes/cityRoutes'));
+app.use('/api/addons', require('./routes/addonRoutes'));
 
 const PORT = process.env.PORT || 5004;
 

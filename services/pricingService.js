@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const RoutePricing = require('../models/RoutePricing');
 const StatePricing = require('../models/StatePricing');
 const RentalPackage = require('../models/RentalPackage');
@@ -88,13 +89,35 @@ async function calculatePrice({
     returnTime,
     packageHours,
     includedKms,
-    isPetCab = false
+    isPetCab = false,
+    addonId = null
 }) {
     // 1. Get Global Multiplier, Advance Percentage, and Pet Charge
     const settings = await GlobalSetting.find();
     const multiplier = settings.find(s => s.key === 'globalMultiplier')?.value || 1.0;
     const globalAdvance = settings.find(s => s.key === 'advancePercentage')?.value ?? 20;
     const petCharge = isPetCab ? (settings.find(s => s.key === 'petCharge')?.value ?? 0) : 0;
+
+    // Fetch addon details if addonId is provided
+    let addonAmount = 0;
+    let addonDetails = {};
+    if (addonId) {
+        try {
+            const AddOn = mongoose.model('AddOn');
+            const addon = await AddOn.findOne({ _id: addonId, isActive: true });
+            if (addon) {
+                addonAmount = addon.price;
+                addonDetails = {
+                    addonId: addon._id.toString(),
+                    addonName: addon.name,
+                    addonPrice: addon.price,
+                    totalAddonAmount: addon.price
+                };
+            }
+        } catch (error) {
+            console.error("Error fetching addon in pricing service:", error.message);
+        }
+    }
 
     // Normalize inputs
     const normalizedRideType = normalizeRideType(rideType);
@@ -184,10 +207,13 @@ async function calculatePrice({
         if (routeRule.includeParking) details.parking = 'Included';
         if (routeRule.includeNightAllowance) details.nightAllowance = 'Included';
 
-        // Get advance payment logic and pet charge
-        const finalFare = Math.round(baseFare * multiplier) + petCharge;
+        // Get advance payment logic, pet charge, and addon amount
+        const finalFare = Math.round(baseFare * multiplier) + petCharge + addonAmount;
         if (isPetCab) {
             details.petCharge = petCharge;
+        }
+        if (addonAmount > 0) {
+            details = { ...details, ...addonDetails };
         }
 
         const advance = calculateAdvanceAmount(finalFare, routeRule.advanceType, routeRule.advanceValue, globalAdvance);
@@ -253,10 +279,13 @@ async function calculatePrice({
                     details.extraCharges = extraCharges;
                 }
 
-                // Apply global multiplier and pet charge
-                const finalFareMultiplied = Math.round(finalFare * multiplier) + petCharge;
+                // Apply global multiplier, pet charge, and addon amount
+                const finalFareMultiplied = Math.round(finalFare * multiplier) + petCharge + addonAmount;
                 if (isPetCab) {
                     details.petCharge = petCharge;
+                }
+                if (addonAmount > 0) {
+                    details = { ...details, ...addonDetails };
                 }
 
                 const advance = calculateAdvanceAmount(finalFareMultiplied, pkg.advanceType, pkg.advanceValue, globalAdvance);
@@ -368,10 +397,13 @@ async function calculatePrice({
                 finalFare = Math.max(resolvedDistance, stateRule.minKms) * stateRule.ratePerKm + (stateRule.driverBata || 0);
             }
 
-            // Apply global multiplier and pet charge
-            const finalFareMultiplied = Math.round(finalFare * multiplier) + petCharge;
+            // Apply global multiplier, pet charge, and addon amount
+            const finalFareMultiplied = Math.round(finalFare * multiplier) + petCharge + addonAmount;
             if (isPetCab) {
                 details.petCharge = petCharge;
+            }
+            if (addonAmount > 0) {
+                details = { ...details, ...addonDetails };
             }
 
             advance = calculateAdvanceAmount(finalFareMultiplied, stateRule.advanceType, stateRule.advanceValue, globalAdvance);

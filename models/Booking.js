@@ -67,13 +67,40 @@ const bookingSchema = new mongoose.Schema({
     driverNumber: { type: String },
     carNo: { type: String },
     isPetCab: { type: Boolean, default: false },
-    petType: { type: String, default: null }
+    petType: { type: String, default: null },
+    
+    // Add-On fields
+    addonId: { type: mongoose.Schema.Types.ObjectId, ref: 'AddOn', default: null },
+    addonName: { type: String, default: null },
+    addonPrice: { type: Number, default: 0 },
+    totalAddonAmount: { type: Number, default: 0 }
 }, {
     timestamps: true
 });
 
-// Generate a random booking ID before saving
+// Generate a random booking ID before saving and populate addon details
 bookingSchema.pre('save', async function() {
+    // Populate Add-On details if addonId is present but details are missing/incomplete
+    if (this.addonId && (!this.addonName || !this.totalAddonAmount)) {
+        try {
+            const AddOn = mongoose.model('AddOn');
+            const addon = await AddOn.findById(this.addonId);
+            if (addon) {
+                this.addonName = addon.name;
+                this.addonPrice = addon.price;
+                
+                // If totalAddonAmount is not set, set it and add to fare/dueFare
+                if (!this.totalAddonAmount || this.totalAddonAmount === 0) {
+                    this.totalAddonAmount = addon.price;
+                    this.fare += addon.price;
+                    this.dueFare += addon.price;
+                }
+            }
+        } catch (error) {
+            console.error("Error populating AddOn details in pre-save hook:", error.message);
+        }
+    }
+
     if (!this.bookingId) {
         const date = new Date();
         const year = date.getFullYear().toString().slice(-2);

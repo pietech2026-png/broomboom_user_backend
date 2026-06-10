@@ -9,6 +9,7 @@ const StatePricing = require('./models/StatePricing');
 const RoutePricing = require('./models/RoutePricing');
 const RentalPackage = require('./models/RentalPackage');
 const City = require('./models/City');
+const AddOn = require('./models/AddOn');
 
 const seedData = async () => {
     try {
@@ -25,6 +26,7 @@ const seedData = async () => {
         await RoutePricing.deleteMany();
         await RentalPackage.deleteMany();
         await City.deleteMany();
+        await AddOn.deleteMany();
 
         // Seed Cities with Coordinates for proximity testing
         await City.create([
@@ -155,6 +157,15 @@ const seedData = async () => {
             { key: 'petCharge', value: 1000 }
         ]);
         console.log('Global Settings seeded');
+
+        // Seed AddOns
+        await AddOn.create([
+            { name: 'Child Seat', description: 'Safety booster seat for kids and infants', price: 300, icon: 'child_seat_icon', isActive: true },
+            { name: 'WiFi Hotspot', description: 'High-speed 4G/5G in-car WiFi connection', price: 150, icon: 'wifi_icon', isActive: true },
+            { name: 'Luggage Carrier', description: 'Roof rack luggage carrier for extra bags', price: 200, icon: 'luggage_icon', isActive: true },
+            { name: 'Extra Pillow & Blanket', description: 'Set of soft pillows and blankets for night journeys', price: 100, icon: 'pillow_icon', isActive: false }
+        ]);
+        console.log('Add-Ons seeded');
 
         // Seed Bookings with the new schema
         await Booking.create([
