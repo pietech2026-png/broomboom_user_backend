@@ -57,13 +57,21 @@ function normalizeCarCategory(cat) {
  */
 function calculateAdvanceAmount(fare, advanceType, advanceValue, globalAdvance) {
     const type = advanceType || 'Percentage';
-    const val = (advanceValue !== undefined && advanceValue !== null) ? advanceValue : globalAdvance;
+    let val = (advanceValue !== undefined && advanceValue !== null) ? advanceValue : globalAdvance;
+    if (Array.isArray(val)) {
+        val = val.length > 0 ? parseFloat(val[0]) : 20;
+    } else if (typeof val === 'string') {
+        val = parseFloat(val.split(',')[0]) || 20;
+    } else {
+        val = parseFloat(val) || 20;
+    }
     if (type === 'Fixed') {
         return Math.min(fare, val);
     } else {
         return Math.round(fare * (val / 100));
     }
 }
+
 
 
 /**
