@@ -72,6 +72,29 @@ function calculateAdvanceAmount(fare, advanceType, advanceValue, globalAdvance) 
     }
 }
 
+/**
+ * Resolves a list of advance percentage options configured for the rule or globally
+ */
+function resolveAdvanceOptions(advanceType, advanceValue, globalAdvance) {
+    const type = advanceType || 'Percentage';
+    let val = (advanceValue !== undefined && advanceValue !== null) ? advanceValue : globalAdvance;
+    if (type === 'Fixed') {
+        return []; // Fixed amount has no selectable percentages in review screen
+    } else {
+        // Percentage
+        let arrayVals = [];
+        if (Array.isArray(val)) {
+            arrayVals = val.map(Number);
+        } else if (typeof val === 'string') {
+            arrayVals = val.split(',').map(v => parseInt(v.trim())).filter(v => !isNaN(v));
+        } else {
+            arrayVals = [parseInt(val) || 20];
+        }
+        return arrayVals.filter(v => v >= 0);
+    }
+}
+
+
 
 
 /**
@@ -232,6 +255,7 @@ async function calculatePrice({
             fare: finalFare,
             advance,
             dueFare,
+            advanceOptions: resolveAdvanceOptions(routeRule.advanceType, routeRule.advanceValue, globalAdvance),
             details,
             multiplier,
             appliedRule: routeRule._id,
@@ -304,6 +328,7 @@ async function calculatePrice({
                     fare: finalFareMultiplied,
                     advance,
                     dueFare,
+                    advanceOptions: resolveAdvanceOptions(pkg.advanceType, pkg.advanceValue, globalAdvance),
                     details,
                     multiplier,
                     appliedRule: pkg._id,
@@ -422,6 +447,7 @@ async function calculatePrice({
                 fare: finalFareMultiplied,
                 advance,
                 dueFare,
+                advanceOptions: resolveAdvanceOptions(stateRule.advanceType, stateRule.advanceValue, globalAdvance),
                 details,
                 multiplier,
                 appliedRule: stateRule._id,

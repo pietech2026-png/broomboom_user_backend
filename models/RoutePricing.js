@@ -69,7 +69,7 @@ const routePricingSchema = new mongoose.Schema({
         default: 'Percentage'
     },
     advanceValue: {
-        type: Number,
+        type: mongoose.Schema.Types.Mixed,
         default: 20
     },
     status: {
